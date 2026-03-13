@@ -1,0 +1,143 @@
+{
+  "site_name": "MySite",
+  "verbose": false,
+  "models": {
+    "number_plate_model": "model/plate_detection/plate_detection_model_v2.pt",
+    "ocr_model": "model/ocr/best.pt",
+    "number_plate_threshold": 0.5,
+    "ocr_threshold": 0.5
+  },
+  "camera_url": {
+    "visitor_camera": "/home/katomaran/project/lnpr_gokul (copy)/Deploy_lpr/videos/test1.mp4"
+  },
+  "url": {
+    "visitor_camera": "/home/katomaran/project/lnpr_gokul (copy)/Deploy_lpr/videos/test1.mp4"
+  },
+  "camera_numberplate_path": {
+    "parent_folder": "images",
+    "visitor_camera": "visitor_camera"
+  },
+  "log_path": "logs",
+  "camera_fps": 8,
+  "batch_size": 2,
+  "max_plate_batch_size": 30,
+  "show_video": true,
+  "feed_cuts_notification": false,
+  "outbound": false,
+  "mail_time_delay": 3600,
+  "regions": {
+    "visitor_camera": false
+  },
+  "car_in": {
+    "visitor_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]"
+  },
+  "centroid": {
+    "visitor_camera": "(960, 540)"
+  },
+  "application_type": {
+    "visitor_camera": "normal"
+  },
+  "bike_lnpr": {
+    "visitor_camera": false
+  },
+  "sms_status": {
+    "visitor_camera": false
+  },
+  "db": {
+    "camera_id": {
+      "visitor_camera": "1"
+    },
+    "api_endpoint": "https://kato-bms-api.surveillant.tech/api/v1/vehicle_entries",
+    "Authorization": "API_KEY fe1558bc8037fecae995db31718f6661",
+    "resident_endpoint": "https://your-api.com/residents",
+    "state_change": "https://your-api.com/cameras/{}/state",
+    "state_auth_token": "Bearer YOUR_STATE_TOKEN",
+    "time_to_fly": 30
+  },
+  "test_db": {
+    "status": false,
+    "url": "",
+    "api_key": ""
+  },
+  "mqtt": {
+    "status": false,
+    "host": "localhost",
+    "port": "1883",
+    "username": "",
+    "password": "",
+    "topic": "lnpr/plates",
+    "topic_endpoint": "",
+    "mqtt_endpoint": "",
+    "serial_ids": {
+      "visitor_camera": "dcs_001"
+    }
+  },
+  "resident_mqtt": {
+    "topic": "lnpr/resident",
+    "host": "localhost",
+    "port": "1883",
+    "username": "",
+    "password": ""
+  },
+  "mail_server": "",
+  "twilio": {
+    "status": false,
+    "account_sid": "",
+    "auth_token": "",
+    "from_number": "",
+    "phone_numbers": [],
+    "count_to_send": 1
+  },
+  "testing": {
+    "status": false,
+    "parent_folder": "test_images",
+    "car_image_folder": "cars",
+    "lp_images_folder": "plates"
+  },
+  "zoom_focus": {
+    "visitor_camera": {
+      "status": false,
+      "zoom_value": 100
+    }
+  },
+  "brightness": {
+    "visitor_camera": {
+      "status": false,
+      "mode": "1"
+    }
+  },
+  "exposure": {
+    "visitor_camera": {
+      "status": false,
+      "value1": "1",
+      "value2": "100"
+    }
+  },
+  "irmode": {
+    "visitor_camera": {
+      "status": false
+    }
+  },
+  "schedule_time": {
+    "visitor_camera": {
+      "status": false,
+      "sunrisehour": "06",
+      "sunriseminute": "30",
+      "sunriseseconds": "00",
+      "sunsethour": "19",
+      "sunsetminute": "00",
+      "sunsetseconds": "00"
+    }
+  },
+  "fps": {
+    "visitor_camera": {
+      "status": false,
+      "fps_value": 15
+    }
+  },
+  "timetitle": {
+    "visitor_camera": {
+      "status": false
+    }
+  }
+}

@@ -1,0 +1,85 @@
+# LNPR Execution Guidelines
+
+This document provides step-by-step instructions for running the License Plate Recognition (LNPR) system both locally and using Docker.
+
+---
+
+## 1. Local Setup (Directly Python)
+
+### Prerequisites
+- **Python**: Recommended version is **3.6.8** (as used in the Docker environment).
+- **FFmpeg**: Required for RTSP stream processing.
+    - Ubuntu/Debian: `sudo apt-get install ffmpeg`
+    - macOS: `brew install ffmpeg`
+- **System Libraries**: You may need image processing libraries (libjpeg, libpng, libtiff).
+
+### Installation Steps
+
+1.  **Clone the Repository** (if not already done).
+2.  **Create a Virtual Environment**:
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+3.  **Install Python Dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  **OpenCV Note**: Ensure your `opencv-python` installation has FFMPEG support enabled for RTSP streams.
+5.  **Configure the Application**:
+    - Edit [config.json](file:///home/katomaran/project/lnpr_gokul%20%28copy%29/lnpr/config.json) to match your environment. 
+    - Ensure `camera_url` and `models` paths are correct.
+
+### Execution Command
+Run the main script by specifying the camera name and configuration file:
+```bash
+python3 camera.py --camera_name visitor_camera --config_file config.json
+```
+
+---
+
+## 2. Docker Setup
+
+Using Docker is highly recommended as it pre-bundles the complex OpenCV dependencies and environment configurations.
+
+### Prerequisites
+- **Docker** and **Docker Compose** installed.
+
+### Fast Track (using Makefile)
+The project includes a [Makefile](file:///home/katomaran/project/lnpr_gokul%20%28copy%29/lnpr/Makefile) for convenience.
+1.  **Start the container**:
+    ```bash
+    make start camera_type=visitor_camera config_file=config.json
+    ```
+2.  **Follow logs**:
+    ```bash
+    make follow
+    ```
+3.  **Stop the container**:
+    ```bash
+    make stop
+    ```
+
+### Manual Docker Compose
+If you prefer using Docker Compose directly:
+```bash
+# Set environment variables and run
+camera_type=visitor_camera config_file=config.json docker compose up -d
+```
+
+---
+
+## 3. Configuration Best Practices
+
+- **Models**: Ensure `.cfg` and `.weights` files exist in the `model/` directory as specified in [config.json](file:///home/katomaran/project/lnpr_gokul%20%28copy%29/lnpr/config.json).
+- **RTSP URLs**: If using live cameras, verify the `camera_url` in [config.json](file:///home/katomaran/project/lnpr_gokul%20%28copy%29/lnpr/config.json).
+- **Image Paths**: The system will automatically create the `images/` folder for detected plates based on the `camera_numberplate_path` setting.
+- **Port Mapping**: If using MQTT or API integrations, ensure your network allows the container to reach those endpoints.
+
+---
+
+## 4. Troubleshooting
+
+- **No frame from camera**: Check if `ffmpeg` is installed (for local run) or if the `camera_url` is accessible.
+- **Model not found**: Verify file paths in [config.json](file:///home/katomaran/project/lnpr_gokul%20%28copy%29/lnpr/config.json) match the actual filenames in the `model/` folder.
+- **Permission Denied**: Ensure the user running the script has write access to the `images/` and `logs/` directories.

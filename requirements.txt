@@ -1,0 +1,13 @@
+numpy
+opencv-python
+paho-mqtt<2
+pytz
+requests
+shapely
+apscheduler
+schedule
+matplotlib
+pandas
+twilio
+
+
