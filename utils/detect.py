@@ -4,14 +4,37 @@ import numpy as np
 
 from ultralytics import YOLO
 
-def get_ln(config_file, weight_file):
+import torch
+
+def resolve_device(device_str):
+    device_str = device_str.lower()
+    if device_str == "auto":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    elif device_str == "cuda" and not torch.cuda.is_available():
+        print("Warning: CUDA requested but not found, falling back to CPU")
+        return "cpu"
+    return device_str
+
+def get_ln(config_file, weight_file, device="auto"):
+    resolved_device = resolve_device(device)
+    
     # If weight_file is a .pt model, we use Ultralytics
     if weight_file.endswith('.pt'):
         model = YOLO(weight_file)
+        model.to(resolved_device)
         return model, None
     
     # Fallback to Darknet/OpenCV for .weights files
     net = cv2.dnn.readNetFromDarknet(config_file, weight_file)
+    
+    # Apply device settings to OpenCV DNN
+    if resolved_device.startswith("cuda"):
+        net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+        net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    else:
+        net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+        net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+
     ln = net.getLayerNames()
     unconnected_layers = net.getUnconnectedOutLayers()
     if isinstance(unconnected_layers, np.ndarray):

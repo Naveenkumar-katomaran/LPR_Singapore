@@ -27,7 +27,7 @@ This document provides step-by-step instructions for running the License Plate R
     ```
 4.  **OpenCV Note**: Ensure your `opencv-python` installation has FFMPEG support enabled for RTSP streams.
 5.  **Configure the Application**:
-    - Edit [config.json](file:///home/katomaran/project/lnpr_gokul%20%28copy%29/lnpr/config.json) to match your environment. 
+    - Edit [config.json](file:///home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/config.json) to match your environment. 
     - Ensure `camera_url` and `models` paths are correct.
 
 ### Execution Command

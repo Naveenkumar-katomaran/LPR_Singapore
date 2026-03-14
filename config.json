@@ -2,16 +2,17 @@
   "site_name": "MySite",
   "verbose": false,
   "models": {
+    "device": "auto",
     "number_plate_model": "model/plate_detection/plate_detection_model_v2.pt",
-    "ocr_model": "model/ocr/best.pt",
+    "ocr_model": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/model/ocr/best.pt",
     "number_plate_threshold": 0.5,
     "ocr_threshold": 0.5
   },
   "camera_url": {
-    "visitor_camera": "/home/katomaran/project/lnpr_gokul (copy)/Deploy_lpr/videos/test1.mp4"
+    "visitor_camera": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/videos/test1.mp4"
   },
   "url": {
-    "visitor_camera": "/home/katomaran/project/lnpr_gokul (copy)/Deploy_lpr/videos/test1.mp4"
+    "visitor_camera": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/videos/test1.mp4"
   },
   "camera_numberplate_path": {
     "parent_folder": "images",
@@ -20,13 +21,13 @@
   "log_path": "logs",
   "camera_fps": 8,
   "batch_size": 2,
-  "max_plate_batch_size": 30,
+  "max_plate_batch_size": 50,
   "show_video": true,
   "feed_cuts_notification": false,
-  "outbound": false,
+  "outbound": true,
   "mail_time_delay": 3600,
   "regions": {
-    "visitor_camera": false
+    "visitor_camera": true
   },
   "car_in": {
     "visitor_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]"
@@ -45,7 +46,7 @@
   },
   "db": {
     "camera_id": {
-      "visitor_camera": "1"
+      "visitor_camera": "83dde245-5df6-4211-aa4d-cef91be9e9d1"
     },
     "api_endpoint": "https://kato-bms-api.surveillant.tech/api/v1/vehicle_entries",
     "Authorization": "API_KEY fe1558bc8037fecae995db31718f6661",
@@ -139,5 +140,25 @@
     "visitor_camera": {
       "status": false
     }
+  },
+  "car_in_relative": {
+    "visitor_camera": [
+      [
+        0.0039,
+        0.4486
+      ],
+      [
+        0.9945,
+        0.4625
+      ],
+      [
+        0.993,
+        0.9903
+      ],
+      [
+        0.0031,
+        0.9903
+      ]
+    ]
   }
 }

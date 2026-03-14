@@ -217,9 +217,12 @@ logging.addHandler(handler)
 #   Loading the region of interest
 #  ------------------------------------------
 
-if config["regions"][args.camera_name]:
-    polygon_pts = Polygon(eval(config["car_in"][args.camera_name]))
-    logging.debug(f"Polygon points - {polygon_pts}")
+if config.get("regions", {}).get(args.camera_name):
+    if config.get("car_in") and args.camera_name in config["car_in"]:
+        polygon_pts = Polygon(eval(config["car_in"][args.camera_name]))
+        logging.debug(f"Polygon points - {polygon_pts}")
+    elif config.get("car_in_relative") and args.camera_name in config["car_in_relative"]:
+        logging.info("Dynamic relative bounds will be calculated per frame.")
 
 
 #  ------------------------------------------
@@ -326,12 +329,48 @@ def lp_detection(image, dt_net, dt_ln):
     #   Licence plate are detected here
     #  ------------------------------------------
 
-    dt_boxes, dt_confidences, _ = get_bbox(image, dt_net, dt_ln, config["models"]["number_plate_threshold"])
+    # Build the active polygon for this frame
+    # We dynamically scale `car_in_relative` to the actual image shape,
+    # adapting effortlessly if the RTSP resolution changes.
+    img_h, img_w = image.shape[:2]
+    active_polygon = None
+    
+    if config.get("regions", {}).get(args.camera_name):
+        if config.get("car_in_relative") and args.camera_name in config["car_in_relative"]:
+            rel_pts = config["car_in_relative"][args.camera_name]
+            abs_pts = [(int(p[0] * img_w), int(p[1] * img_h)) for p in rel_pts]
+            active_polygon = Polygon(abs_pts)
+        else:
+            # Fallback to the static legacy `car_in`
+            if "car_in" in config and args.camera_name in config["car_in"]:
+                active_polygon = Polygon(eval(config["car_in"][args.camera_name]))
+
+    # Determine cropping area based on active ROI
+    crop_x1, crop_y1, crop_x2, crop_y2 = 0, 0, img_w, img_h
+    if active_polygon is not None:
+        min_x, min_y, max_x, max_y = active_polygon.bounds
+        crop_x1 = max(0, int(min_x))
+        crop_y1 = max(0, int(min_y))
+        crop_x2 = min(img_w, int(max_x))
+        crop_y2 = min(img_h, int(max_y))
+        # Ensure valid crop dimensions
+        if crop_x2 > crop_x1 and crop_y2 > crop_y1:
+            crop_img = image[crop_y1:crop_y2, crop_x1:crop_x2]
+        else:
+            crop_img = image # fallback to full image if polygon is invalid
+    else:
+        crop_img = image
+
+    dt_boxes, dt_confidences, _ = get_bbox(crop_img, dt_net, dt_ln, config["models"]["number_plate_threshold"])
     dt_list = []
     dt_conf = []
     if dt_boxes is not None:
         for index, b in enumerate(dt_boxes):
             (l, t, w, h) = b[:4]
+            # Adjust coordinates back to the original full-frame reference
+            l += crop_x1
+            t += crop_y1
+
             if l < 0:
                 w = w + l
                 l = 0
@@ -339,13 +378,18 @@ def lp_detection(image, dt_net, dt_ln):
                 h = h + t
                 t = 0
 
-            if config["regions"][args.camera_name]:
-                center = eval(config["centroid"][args.camera_name])
-                logging.debug("Car and Number Plate is detected in this camera outside the region")
-                if polygon_pts.contains(Point(center)):
+            if active_polygon is not None:
+                # Check if the license plate center falls within the polygon
+                # BUG FIX: dynamically tracking actual bounding box's center
+                cx = l + (w / 2.0)
+                cy = t + (h / 2.0)
+                
+                if active_polygon.contains(Point(cx, cy)):
                     logging.info("Car and Number Plate is detected in this camera")
                     dt_list.append([(l, t), (l + w, t + h)])
                     dt_conf.append(dt_confidences[index])
+                else:
+                    logging.debug("Car and Number Plate is detected in this camera outside the region")
             else:
                 logging.info("Car and Number Plate is detected in this camera")
                 dt_list.append([(l, t), (l + w, t + h)])
@@ -547,9 +591,10 @@ def camera_main():
             phone_numbers = config['twilio']['phone_numbers']
             twilio_count = config['twilio']['count_to_send']
             
-    logging.info("Loading YOLO models...")
-    dt_net, dt_ln = get_ln(None, config["models"]["number_plate_model"])
-    rg_net, rg_ln = get_ln(None, config["models"]["ocr_model"])
+    device_setting = config["models"].get("device", "auto")
+    logging.info(f"Loading YOLO models with device: {device_setting}")
+    dt_net, dt_ln = get_ln(None, config["models"]["number_plate_model"], device=device_setting)
+    rg_net, rg_ln = get_ln(None, config["models"]["ocr_model"], device=device_setting)
     labels = config.get("labels", "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ")
     logging.info("Models loaded. Opening camera stream...")
 
