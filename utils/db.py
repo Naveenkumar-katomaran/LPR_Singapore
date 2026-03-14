@@ -195,7 +195,7 @@ class TextProcess:
         except KeyError:
             logging.info("Oops...! DCS for {} is not found".format(self.camera_name),exc_info=1)
 
-    def text_process(self, number_plate_image, number_string, raw_data, lp_confs):
+    def text_process(self, number_plate_image, number_string, raw_data, lp_confs, full_frame=None):
         payload = {}
         files = {}
         try:
@@ -207,10 +207,19 @@ class TextProcess:
                 encoded_lp_image = cv2.imencode('.jpg', number_plate_image)[1].tobytes()
                 self.new_string = number_string
                 now_utc = datetime.now(timezone('UTC'))
-                t_new = now_utc.astimezone(timezone("Singapore"))
+                t_new = now_utc.astimezone(timezone("Asia/Kolkata"))
                 status, self.old_string, self.time = db_hit_status(self.new_string, self.old_string, self.time, self.time_to_fly)
                 veh_type = "normal"
                 if status:
+                    if self.config.get("Collect_full_images") and full_frame is not None:
+                        training_parent = "training"
+                        folder_name = t_new.strftime(self.fmt[:8])
+                        training_path = os.path.join(training_parent, folder_name)
+                        if not os.path.exists(training_path):
+                            os.makedirs(training_path, exist_ok=True)
+                        file_name = t_new.strftime(self.fmt[9:17]) + '-' + self.old_string + ".jpg"
+                        cv2.imwrite(os.path.join(training_path, file_name), full_frame)
+
                     self.payload['vehicle_entries[detected_time]'] = t_new.strftime(self.fmt)
                     self.payload['vehicle_entries[vehicle_type]'] = veh_type
                     self.payload['vehicle_entries[number_plate]'] = self.old_string
@@ -299,7 +308,14 @@ class TextProcess:
                     logging.info("Same car detected")
                 logging.info("\n\n\n\n\n")
 
+            # Explicitly free up memory for large image objects
+            del number_plate_image
+            del full_frame
+
         except Exception as e:
             logging.info("ocr_processing Exception : {}".format(e), exc_info=1)
             response_500.put([payload.copy(), files.copy()])
+            # Ensure cleanup happens even on exception
+            if 'number_plate_image' in locals(): del number_plate_image
+            if 'full_frame' in locals(): del full_frame
 

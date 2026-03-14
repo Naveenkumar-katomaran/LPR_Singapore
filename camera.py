@@ -31,6 +31,7 @@ from shapely.geometry.polygon import Polygon
 from time import strftime, sleep
 import schedule
 import threading
+from queue import Queue
 
 
 #  ------------------------------------------
@@ -120,12 +121,12 @@ def _open_camera_stream(config, camera_name):
 
 
 #  ------------------------------------------
-#   Custom time (Singapore Time) for logging
+#   Custom time (Indian Standard Time - Asia/Kolkata) for logging
 #  ------------------------------------------
 
 def custom_time(*args):
     utc_dt = datetime.now(utc)
-    my_tz = timezone("Singapore")
+    my_tz = timezone("Asia/Kolkata")
     converted = utc_dt.astimezone(my_tz)
     return converted.timetuple()
 
@@ -430,6 +431,7 @@ def box_draw(image_list, bbox_list, rg_net, rg_ln, labels, dt_net, dt_ln, lp_con
     image_len = -1
     plate_results = list()
     infos = list()
+    full_image = None
 
     #  ------------------------------------------
     #   If only one detection is occured, we need to perform detection for other images.
@@ -478,6 +480,7 @@ def box_draw(image_list, bbox_list, rg_net, rg_ln, labels, dt_net, dt_ln, lp_con
             if varrr >= image_len:
                 image_len = varrr
                 lp_image = number_plate_image
+                full_image = image
             info = []
             for i in range(len(rg_classids)):
                 info.append((labels[rg_classids[i]], rg_boxes[i], rg_confidences[i]))
@@ -528,13 +531,43 @@ def box_draw(image_list, bbox_list, rg_net, rg_ln, labels, dt_net, dt_ln, lp_con
                 logging.info(f"Info Error  : {ve}", exc_info=1)
             logging.info(f"Consolidated  :  {consolidated} {text_info}")
 
-            n = Thread(target=TextProcess_var.text_process, args=(lp_image, consolidated, text_info, lp_confss))
+            n = Thread(target=TextProcess_var.text_process, args=(lp_image, consolidated, text_info, lp_confss, full_image))
             n.start()
         else:
             logging.info("Check with Plate results")
             logging.info("\n\n\n\n\n")
     else:
         logging.info("Text not detected")
+
+#  ------------------------------------------
+#   Asynchronous OCR Worker
+#  ------------------------------------------
+
+ocr_queue = Queue(maxsize=config.get("OCR_QUEUE_MAXSIZE", 3))
+
+def ocr_worker(rg_net, rg_ln, labels, dt_net, dt_ln):
+    while True:
+        try:
+            # Get detection data from queue
+            data = ocr_queue.get()
+            if data is None: # Shutdown signal
+                break
+                
+            img_list, bbox_list, lp_confss_copy = data
+            
+            # Execute batch OCR
+            box_draw(img_list, bbox_list, rg_net, rg_ln, labels, dt_net, dt_ln, lp_confss_copy)
+            
+            # Explicitly clear objects to free memory
+            del img_list
+            del bbox_list
+            del lp_confss_copy
+            
+            # Signal task completion
+            ocr_queue.task_done()
+            
+        except Exception as e:
+            logging.error(f"Error in ocr_worker: {e}", exc_info=1)
 
 def camera_main():
     #  ------------------------------------------
@@ -556,6 +589,10 @@ def camera_main():
     rg_net, rg_ln = get_ln(None, config["models"]["ocr_model"], device=device_setting)
     labels = config.get("labels", "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ")
     logging.info("Models loaded. Opening camera stream...")
+
+    # Start the background OCR worker
+    worker_t = Thread(target=ocr_worker, args=(rg_net, rg_ln, labels, dt_net, dt_ln), daemon=True)
+    worker_t.start()
 
     #  ------------------------------------------
     #    Capturing the live feed (RTSP via ffmpeg when needed)
@@ -701,7 +738,19 @@ def camera_main():
                         c_t.start()
                     logging.info(f"Length of image list  {len(number_plate_images)}")
                     box = rect_points(rectangle_list, config["camera_fps"])
-                    box_draw(number_plate_images, box, rg_net, rg_ln, labels, dt_net, dt_ln, lp_confs.copy())
+                    # box_draw(number_plate_images, box, rg_net, rg_ln, labels, dt_net, dt_ln, lp_confs.copy())
+                    
+                    # Offload to background worker
+                    if not ocr_queue.full():
+                        ocr_queue.put((number_plate_images.copy(), box, lp_confs.copy()))
+                    else:
+                        logging.warning("OCR Queue is full! Skipping this detection to prevent memory overflow.")
+                        
+                    # Immediately clear main thread lists to free RAM
+                    number_plate_images.clear()
+                    rectangle_list.clear()
+                    lp_confs.clear()
+                    
                     first_time = 1
                 car_crossed = 1
 
@@ -721,7 +770,14 @@ def camera_main():
                         w_t.start()
                     logging.info(f"Length of image list  {len(number_plate_images)}")
                     box = rect_points(rectangle_list, config["camera_fps"])
-                    box_draw(number_plate_images, box, rg_net, rg_ln, labels, dt_net, dt_ln, lp_confs.copy())
+                    # box_draw(number_plate_images, box, rg_net, rg_ln, labels, dt_net, dt_ln, lp_confs.copy())
+                    
+                    # Offload to background worker
+                    if not ocr_queue.full():
+                        ocr_queue.put((number_plate_images.copy(), box, lp_confs.copy()))
+                    else:
+                        logging.warning("OCR Queue is full! Skipping this detection to prevent memory overflow.")
+                        
                 first_time = 0
                 logging.info(f"Total image list  {len(number_plate_images)}")
                 if config["testing"]["status"]:

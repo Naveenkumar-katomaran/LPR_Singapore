@@ -2,7 +2,7 @@
   "site_name": "MySite",
   "verbose": false,
   "models": {
-    "device": "auto",
+    "device": "cpu",
     "number_plate_model": "model/plate_detection/plate_detection_model_v2.pt",
     "ocr_model": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/model/ocr/best.pt",
     "number_plate_threshold": 0.5,
@@ -62,6 +62,8 @@
     "entry_camera": false,
     "exit_camera": false
   },
+  "Collect_full_images": true,
+  "OCR_QUEUE_MAXSIZE": 3,
   "db": {
     "camera_id": {
       "visitor_camera": "83dde245-5df6-4211-aa4d-cef91be9e9d1",
@@ -69,7 +71,7 @@
       "exit_camera": "df8434be-5fba-4e85-b4ff-bef63631ef14"
     },
     "api_endpoint": "https://kato-bms-api.surveillant.tech/api/v1/vehicle_entries",
-    "Authorization": "API_KEY fe1558bc8037fecae995db31718f6661",
+    "Authorization": "API_KEY fe1558bc8037fecae995db31718f6661.",
     "resident_endpoint": "https://your-api.com/residents",
     "state_change": "https://your-api.com/cameras/{}/state",
     "state_auth_token": "Bearer YOUR_STATE_TOKEN",
