@@ -179,26 +179,17 @@ class TextProcess:
     
     def mqtt_publish(self, data):
         try:
-            if len(self.mqtt_connection_setting) > 0:
-                mqtt_data = {'serial_id': self.mqtt_connection_setting["serial_id"],
+            if self.mqtt_connection_setting.get("host") and self.mqtt_connection_setting.get("port"):
+                mqtt_data = {'serial_id': self.mqtt_connection_setting.get("serial_id", ""),
                                 "data": data}
                 self.client.connect(self.mqtt_connection_setting["host"], int(self.mqtt_connection_setting["port"]))
-                ret = self.client.publish(self.mqtt_connection_setting["topic"],
+                ret = self.client.publish(self.mqtt_connection_setting.get("topic", ""),
                                             json.dumps(mqtt_data))
                                                                                 
                 if ret.is_published() is True:
                     logging.info("Yeah ..! MQTT is published")
                 else:
                     logging.info(ret)
-
-                    mail_res = requests.post(self.config['mail_server'],
-                                                data={"camera_type": self.camera_name,
-                                                    'site_name': self.config['site_name'],
-                                                    'message': 'Oops..! Mqtt is not published for the number plate {}'.format(
-                                                        self.old_string),
-                                                    'application_name': "LNPR"})
-                    logging.info(
-                        f"Mail server hit for Mqtt error is done successfully with the response code of {mail_res.status_code} for the number_plate of {self.old_string}")
             else:
                 logging.info("Oops...! DCS for {} is not found".format(self.camera_name),exc_info=1)
         except KeyError:
@@ -257,25 +248,26 @@ class TextProcess:
                                 r = r.json()
                                 logging.info(r)
                                 if 'application_type' in self.config.keys():
+                                    resp_data = r.get('data', {})
 
-                                    if r['data']['open_barricade'] and r['data']['visit_entry'] is True:
+                                    if resp_data.get('open_barricade') and resp_data.get('visit_entry') is True:
                                     
                                         data = {"vehicle":{"number_plate":self.old_string,"owner":{"number_plate":self.old_string,"operation":"visitor_barricade","status":"visitor_entry"}}} 
                                         logging.info("\n\n")
                                         logging.info("This Number Plate {} is visitor Web checkin entry in building management system ".format(self.old_string))
                                         self.mqtt_publish(data)
-                                    elif r['data']['open_barricade'] and r['data']['invite_entry'] is True:
+                                    elif resp_data.get('open_barricade') and resp_data.get('invite_entry') is True:
                                         data = {"vehicle":{"number_plate":self.old_string,"owner":{"number_plate":self.old_string,"operation":"invite_barricade","status":"invite_entry"}}} 
                                         logging.info("\n\n")
                                         logging.info("This Number Plate {} is visitor Invite entry in building management system ".format(self.old_string))
                                         self.mqtt_publish(data)
-                                    elif r['data']['open_barricade'] is True:
+                                    elif resp_data.get('open_barricade') is True:
                                         data = {"vehicle":{"number_plate":self.old_string,"owner":{"number_plate":self.old_string,"operation":"open","status":"resident"}}} 
                                         logging.info("\n\n")
                                         logging.info("This Number Plate {} is registered in Visitor management system".format(self.old_string))
                                         self.mqtt_publish(data)
                                     elif self.config['application_type'][self.camera_name] == 'normal':
-                                        self.mqtt_publish(r["data"])
+                                        self.mqtt_publish(resp_data)
                                         
                                 try:
                                     if response_500.qsize() > 0:
@@ -298,14 +290,6 @@ class TextProcess:
                             else:
                                 logging.info(r)
                                 response_500.put([payload.copy(), files.copy()])
-                                mail_res = requests.post(self.config['mail_server'],
-                                                        data={"camera_type": self.camera_name,
-                                                            'site_name': self.config['site_name'],
-                                                            'message': 'Oops..! Db is not published for the number plate {}'.format(
-                                                                self.old_string),
-                                                            'application_name': "LNPR"})
-                                logging.info(
-                                    "Mail server hit for Db error is done successfully with the response code of {mail_res.status_code} for the number_plate of {self.old_string}")
                         else:
                             logging.info('Internet is disconnected')
                             response_500.put([payload.copy(), files.copy()])

@@ -14,7 +14,7 @@ from utils.bbox_asumption import *
 from utils.ocr import *
 #from utils.ocr_bench import *
 from utils.db import *
-from utils.setting import *
+
 import logging.handlers as lh
 import logging as log
 from datetime import datetime
@@ -30,9 +30,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 from time import strftime, sleep
 import schedule
-from requests.auth import HTTPDigestAuth
 import threading
-from apscheduler.schedulers.background import BackgroundScheduler
 
 
 #  ------------------------------------------
@@ -397,44 +395,6 @@ def lp_detection(image, dt_net, dt_ln):
         return dt_list, dt_conf
     return None, None
 
-def camera_setup():
-
-    try:
-
-        if config["zoom_focus"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_zoom) 
-            set_zoomfocus(config,args.camera_name)
-                        
-        if config["brightness"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_daynight_mode)
-            set_daynight_mode(config,args.camera_name)
-            
-        if config["exposure"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_exposure)
-            set_exposure(config,args.camera_name)
-            
-        if config["irmode"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_autoir)
-            set_autoir(config,args.camera_name)
-            logging.info("IR mode is updated")
-        
-        if config["schedule_time"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_schedule_time)
-            set_schedule_time(config,args.camera_name)
-            
-        if config["fps"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_autoir)
-            set_fps(config,args.camera_name)
-                    
-        if config["timetitle"][args.camera_name]["status"] is True:
-            #schedule.every().hour.at(":00").do(set_autoir)
-            set_time(config,args.camera_name)
-            
-    except Exception as e:
-        logging.info(f"Camera resetting url has error occured{e}",exc_info=1)
-
-camera_setup()
-
 ###--------------------Ping api status is alive ...--------------------------##
 
 # def ping_request():    
@@ -454,7 +414,6 @@ camera_setup()
 # scheduler.add_job(ping_request,'interval', seconds=300)
 # scheduler.start()
 
-schedule.every().hour.at(":00").do(camera_setup)
 schedule.every().day.at("23:59:59").do(create_plot,config["camera_numberplate_path"][args.camera_name])
 logging.info("Camera setup confgiuration is dones")
 if 'application_type' in config.keys():

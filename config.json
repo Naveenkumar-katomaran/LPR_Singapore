@@ -102,7 +102,6 @@
     "username": "",
     "password": ""
   },
-  "mail_server": "",
   "twilio": {
     "status": false,
     "account_sid": "",
@@ -117,54 +116,44 @@
     "car_image_folder": "cars",
     "lp_images_folder": "plates"
   },
-  "zoom_focus": {
-    "visitor_camera": {
-      "status": false,
-      "zoom_value": 100
-    }
-  },
-  "brightness": {
-    "visitor_camera": {
-      "status": false,
-      "mode": "1"
-    }
-  },
-  "exposure": {
-    "visitor_camera": {
-      "status": false,
-      "value1": "1",
-      "value2": "100"
-    }
-  },
-  "irmode": {
-    "visitor_camera": {
-      "status": false
-    }
-  },
-  "schedule_time": {
-    "visitor_camera": {
-      "status": false,
-      "sunrisehour": "06",
-      "sunriseminute": "30",
-      "sunriseseconds": "00",
-      "sunsethour": "19",
-      "sunsetminute": "00",
-      "sunsetseconds": "00"
-    }
-  },
-  "fps": {
-    "visitor_camera": {
-      "status": false,
-      "fps_value": 15
-    }
-  },
-  "timetitle": {
-    "visitor_camera": {
-      "status": false
-    }
-  },
   "car_in_relative": {
     "visitor_camera": [
+      [
+        0.0039,
+        0.4486
+      ],
+      [
+        0.9945,
+        0.4625
+      ],
+      [
+        0.993,
+        0.9903
+      ],
+      [
+        0.0031,
+        0.9903
+      ]
+    ],
+    "entry_camera": [
+      [
+        0.0039,
+        0.4486
+      ],
+      [
+        0.9945,
+        0.4625
+      ],
+      [
+        0.993,
+        0.9903
+      ],
+      [
+        0.0031,
+        0.9903
+      ]
+    ],
+    "exit_camera": [
       [
         0.0039,
         0.4486
