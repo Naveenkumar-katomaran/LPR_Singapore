@@ -32,3 +32,4 @@ echo "Press [CTRL+C] or [CTRL+Z] to stop both cameras."
 # Wait for background processes to finish
 wait $ENTRY_PID
 wait $EXIT_PID
+
