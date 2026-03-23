@@ -1,0 +1,316 @@
+{
+  "site_name": "MySite",
+  "verbose": false,
+  "enabled_cameras": [
+    "entry_camera",
+    "visitor_camera"
+  ],
+  "models": {
+    "device": "auto",
+    "number_plate_model": "model/plate_detection/plate_detection_model_v3.pt",
+    "ocr_model": "model/ocr/my_model.pt",
+    "number_plate_threshold": 0.4,
+    "ocr_threshold": 0.5,
+    "validate_indian_plate": false,
+    "min_plate_length": 4
+  },
+  "camera_url": {
+    "visitor_camera": "rtsp://192.168.20.153:8554/stream1",
+    "entry_camera": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/videos/test1.mp4",
+    "exit_camera": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/videos/test1.mp4"
+  },
+  "url": {
+    "visitor_camera": "videos/test1.mp4",
+    "entry_camera": "videos/test1.mp4",
+    "exit_camera": "/home/katomaran/project/PROJECT_LPR_CRAFTSMAN/lpr_development/videos/test1.mp4"
+  },
+  "camera_numberplate_path": {
+    "parent_folder": "images",
+    "visitor_camera": "visitor_camera",
+    "entry_camera": "entry_camera",
+    "exit_camera": "exit_camera"
+  },
+  "log_path": "logs",
+  "camera_fps": 6,
+  "batch_size": 2,
+  "max_plate_batch_size": 40,
+  "ocr_chunk_size": 16,
+  "show_video": true,
+  "draw_inference": true,
+  "feed_cuts_notification": false,
+  "outbound": true,
+  "mail_time_delay": 3600,
+  "regions": {
+    "visitor_camera": true,
+    "entry_camera": true,
+    "exit_camera": true
+  },
+  "car_in": {
+    "visitor_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]",
+    "entry_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]",
+    "exit_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]"
+  },
+  "centroid": {
+    "visitor_camera": "(960, 540)",
+    "entry_camera": "(960, 540)",
+    "exit_camera": "(960, 540)"
+  },
+  "application_type": {
+    "visitor_camera": "normal",
+    "entry_camera": "normal",
+    "exit_camera": "normal"
+  },
+  "bike_lnpr": {
+    "visitor_camera": false,
+    "entry_camera": false,
+    "exit_camera": false
+  },
+  "sms_status": {
+    "visitor_camera": false,
+    "entry_camera": false,
+    "exit_camera": false
+  },
+  "Collect_full_images": true,
+  "OCR_QUEUE_MAXSIZE": 6,
+  "db": {
+    "camera_id": {
+      "visitor_camera": "83dde245-5df6-4211-aa4d-cef91be9e9d1",
+      "entry_camera": "83dde245-5df6-4211-aa4d-cef91be9e9d3",
+      "exit_camera": "df8434be-5fba-4e85-b4ff-bef63631ef14"
+    },
+    "api_endpoint": "https://kato-bms-api.surveillant.tech/api/v1/vehicle_entries",
+    "Authorization": "API_KEY fe1558bc8037fecae995db31718f6661.",
+    "resident_endpoint": "https://your-api.com/residents",
+    "state_change": "https://your-api.com/cameras/{}/state",
+    "state_auth_token": "Bearer YOUR_STATE_TOKEN",
+    "time_to_fly": 30
+  },
+  "test_db": {
+    "status": false,
+    "url": "",
+    "api_key": ""
+  },
+  "mqtt": {
+    "status": false,
+    "host": "localhost",
+    "port": "1883",
+    "username": "",
+    "password": "",
+    "topic": "lnpr/plates",
+    "topic_endpoint": "",
+    "mqtt_endpoint": "",
+    "serial_ids": {
+      "visitor_camera": "dcs_001",
+      "entry_camera": "dcs_002",
+      "exit_camera": "dcs_003"
+    }
+  },
+  "resident_mqtt": {
+    "topic": "lnpr/resident",
+    "host": "localhost",
+    "port": "1883",
+    "username": "",
+    "password": ""
+  },
+  "twilio": {
+    "status": false,
+    "account_sid": "",
+    "auth_token": "",
+    "from_number": "",
+    "phone_numbers": [],
+    "count_to_send": 1
+  },
+  "testing": {
+    "status": false,
+    "parent_folder": "test_images",
+    "car_image_folder": "cars",
+    "lp_images_folder": "plates"
+  },
+  "car_in_relative": {
+    "visitor_camera": [
+      [
+        0.0039,
+        0.4486
+      ],
+      [
+        0.9945,
+        0.4625
+      ],
+      [
+        0.993,
+        0.9903
+      ],
+      [
+        0.0031,
+        0.9903
+      ]
+    ],
+    "entry_camera": [
+      [
+        0.0086,
+        0.3514
+      ],
+      [
+        0.9977,
+        0.3931
+      ],
+      [
+        0.9984,
+        0.9944
+      ],
+      [
+        0.0016,
+        0.9931
+      ]
+    ],
+    "exit_camera": [
+      [
+        0.0039,
+        0.4486
+      ],
+      [
+        0.9945,
+        0.4625
+      ],
+      [
+        0.993,
+        0.9903
+      ],
+      [
+        0.0031,
+        0.9903
+      ]
+    ]
+  },
+  "direction_config": {
+    "visitor_camera": {
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.0008,
+          0.4694
+        ],
+        [
+          0.9969,
+          0.7056
+        ],
+        [
+          0.9992,
+          0.9944
+        ],
+        [
+          0.0,
+          0.9931
+        ]
+      ],
+      "zone_b": [
+        [
+          0.0016,
+          0.2514
+        ],
+        [
+          0.9969,
+          0.3931
+        ],
+        [
+          0.9977,
+          0.6986
+        ],
+        [
+          0.0047,
+          0.4681
+        ]
+      ],
+      "mode": "entry"
+    },
+    "entry_camera": {
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.0063,
+          0.4667
+        ],
+        [
+          0.9938,
+          0.7042
+        ],
+        [
+          0.9969,
+          0.9903
+        ],
+        [
+          0.0031,
+          0.9944
+        ]
+      ],
+      "zone_b": [
+        [
+          0.007,
+          0.2528
+        ],
+        [
+          0.9977,
+          0.3458
+        ],
+        [
+          0.9961,
+          0.6972
+        ],
+        [
+          0.007,
+          0.4611
+        ]
+      ],
+      "mode": "entry"
+    },
+    "exit_camera": {
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.0063,
+          0.4667
+        ],
+        [
+          0.9938,
+          0.7042
+        ],
+        [
+          0.9969,
+          0.9903
+        ],
+        [
+          0.0031,
+          0.9944
+        ]
+      ],
+      "zone_b": [
+        [
+          0.007,
+          0.2528
+        ],
+        [
+          0.9977,
+          0.3458
+        ],
+        [
+          0.9961,
+          0.6972
+        ],
+        [
+          0.007,
+          0.4611
+        ]
+      ],
+      "mode": "exit"
+    }
+  },
+  "deduplication": {
+    "enabled": true,
+    "cooldown_seconds": 5,
+    "similarity_threshold": 0.8
+  },
+  "TRACKER_MAX_AGE": 5,
+  "DISTANCE_THRESHOLD": 500,
+  "DISTANCE_SCALE_FACTOR": 1.5,
+  "IOU_THRESHOLD": 0.5
+}

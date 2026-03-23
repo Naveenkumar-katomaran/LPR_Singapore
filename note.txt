@@ -1,0 +1,7 @@
+ python camera.py --config_file config.json
+
+ python camera.py --camera_name visitor_camera --config_file config.json 
+
+ python tools/setup_roi.py --camera_name visitor_camera
+
+ python tools/setup_direction.py --camera_name visitor_camera
