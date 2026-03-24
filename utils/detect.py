@@ -30,12 +30,18 @@ class ModelContainer:
                 logging.info(f"Loading Detection Model: {det_weight} (FP16={use_fp16})")
                 self.detection_model = YOLO(det_weight)
                 self.detection_model.to(resolved_device)
+                if use_fp16 and resolved_device == "cuda":
+                    self.detection_model.half()
+                    logging.info("Detection Model converted to FP16.")
                 logging.info("Detection Model loaded and shared.")
             # Load OCR
             if self.ocr_model is None:
                 logging.info(f"Loading OCR Model: {ocr_weight} (FP16={use_fp16})")
                 self.ocr_model = YOLO(ocr_weight)
                 self.ocr_model.to(resolved_device)
+                if use_fp16 and resolved_device == "cuda":
+                    self.ocr_model.half()
+                    logging.info("OCR Model converted to FP16.")
                 logging.info("OCR Model loaded and shared.")
         return self.detection_model, self.ocr_model
 

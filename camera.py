@@ -267,8 +267,20 @@ def lp_detection(image, dt_net, dt_ln, args, config):
     if dt_boxes is not None:
         for index, b in enumerate(dt_boxes):
             (l, t, w, h) = b[:4]
-            # Format: [(x1, y1), (x2, y2)] for the tracker
-            dt_list.append([(int(l + crop_x1), int(t + crop_y1)), (int(l + crop_x1 + w), int(t + crop_y1 + h))])
+            # Convert to absolute frame coordinates
+            abs_x1, abs_y1 = l + crop_x1, t + crop_y1
+            abs_x2, abs_y2 = abs_x1 + w, abs_y1 + h
+            
+            # --- STRICT ROI FILTER ---
+            # Even if the detection is in the rectangular crop, only accept it
+            # if the centroid is physically inside the ROI polygon.
+            if active_polygon is not None:
+                cx, cy = abs_x1 + w/2.0, abs_y1 + h/2.0
+                if not active_polygon.contains(Point(cx, cy)):
+                    continue # Discard detection outside ROI
+            # -------------------------
+
+            dt_list.append([(int(abs_x1), int(abs_y1)), (int(abs_x2), int(abs_y2))])
             dt_conf.append(dt_confidences[index])
     return dt_list, dt_conf
 
@@ -367,7 +379,7 @@ def ocr_worker(rg_net, rg_ln, labels, dt_net, dt_ln, config):
             log.error(f"OCR Worker error: {e}", exc_info=1)
             sleep(1)
 
-def offload_tracks_to_queue(completed_tracks, camera_name, config):
+def offload_tracks_to_queue(completed_tracks, camera_name, config, zone_polygons=None):
     dir_cfg = config.get("direction_config", {}).get(camera_name, {"enabled": False})
     for track in completed_tracks:
         obj_id, images, bboxes, confs, zone_history, is_final, best_full, disp_vec = track
@@ -377,29 +389,63 @@ def offload_tracks_to_queue(completed_tracks, camera_name, config):
             clean_seq = [z for z in zone_history if z in ['A', 'B']]
             if clean_seq:
                 mode = dir_cfg.get("mode", "entry")
-                if mode == "entry": is_valid = ('B' in clean_seq and clean_seq[-1] == 'A') or len(clean_seq) == 1
-                else: is_valid = ('A' in clean_seq and clean_seq[-1] == 'B') or len(clean_seq) == 1
+                # 1. Path-based check (Gold standard: B->A for entry, A->B for exit)
+                is_valid = ('B' in clean_seq and clean_seq[-1] == 'A') if mode == "entry" else ('A' in clean_seq and clean_seq[-1] == 'B')
+                
+                # 2. Movement-based fallback (Handle ID fragmentation or single-zone detection)
+                if not is_valid and zone_polygons and "A" in zone_polygons and "B" in zone_polygons:
+                    min_det = dir_cfg.get("min_detections", 3)
+                    min_disp = dir_cfg.get("min_displacement", 40)
+                    
+                    # Reference vector for expected movement
+                    # Entry expects moving from B (Approach) to A (Gate)
+                    cA = zone_polygons["A"].centroid
+                    cB = zone_polygons["B"].centroid
+                    ref_vec = (cA.x - cB.x, cA.y - cB.y) if mode == "entry" else (cB.x - cA.x, cB.y - cA.y)
+                    
+                    # Movement vector of the vehicle
+                    dist = (disp_vec[0]**2 + disp_vec[1]**2)**0.5
+                    dot_prod = disp_vec[0] * ref_vec[0] + disp_vec[1] * ref_vec[1]
+                    
+                    # Check if movement aligns with reference and exceeds minimum thresholds
+                    if len(images) >= min_det and dist >= min_disp and dot_prod > 0:
+                        is_valid = True
+                        log.info(f"[Direction] ID:{obj_id} Validated by movement (Dist:{dist:.1f}, Dot:{dot_prod:.1f})")
+                
+                if not is_valid:
+                    log.info(f"[Direction] ID:{obj_id} Rejected {mode} path:{clean_seq} disp:{disp_vec}")
 
         if is_valid and not ocr_queue.full():
             ocr_queue.put((obj_id, images, bboxes, confs, best_full, is_final, camera_name))
 
-def _draw_live_info(image, objects, zone_polygons, config, camera_name):
-    """Enhanced live frame visualizer"""
+def _draw_live_info(image, objects, zone_polygons, config, camera_name, native_res):
+    """Enhanced live frame visualizer with proper resolution scaling"""
     h, w = image.shape[:2]
+    nw, nh = native_res
+    sx, sy = w / max(nw, 1), h / max(nh, 1) # Scaling factors
+    
     overlay = image.copy()
     
-    # 1. Draw Zones with transparency
-    for name, poly in zone_polygons.items():
-        pts = np.array(poly.exterior.coords, np.int32).reshape((-1, 1, 2))
-        color = (0, 255, 0) if name == "A" else (0, 0, 255)
-        cv2.fillPoly(overlay, [pts], color)
-        cv2.polylines(image, [pts], True, color, 3)
-        cv2.putText(image, f"ZONE {name}", tuple(pts[0][0]), cv2.FONT_HERSHEY_DUPLEX, 1.2, color, 2)
+    # 1. Draw Zones (A/B) from config - uses relative coords for proper scaling
+    dir_cfg = config.get("direction_config", {}).get(camera_name, {})
+    for name in ["A", "B"]:
+        rel_key = f"zone_{name.lower()}"
+        if rel_key in dir_cfg:
+            rel_pts = dir_cfg[rel_key]
+            # Scale relative coordinates to current image resolution
+            pts = np.array([(int(p[0]*w), int(p[1]*h)) for p in rel_pts], np.int32).reshape((-1, 1, 2))
+            color = (0, 255, 0) if name == "A" else (0, 0, 255)
+            
+            cv2.fillPoly(overlay, [pts], color)
+            cv2.polylines(image, [pts], True, color, 3)
+            # Label at the first point of the polygon
+            if len(pts) > 0:
+                cv2.putText(image, f"ZONE {name}", tuple(pts[0][0]), cv2.FONT_HERSHEY_DUPLEX, 1.2, color, 2)
 
     # 2. Blend zones
     cv2.addWeighted(overlay, 0.2, image, 0.8, 0, image)
 
-    # 3. Draw ROI (car_in)
+    # 3. Draw ROI (car_in) - already using relative coordinates so it scales natively
     roi_rel = config.get("car_in_relative", {}).get(camera_name, [])
     if roi_rel:
         roi_pts = np.array([(int(p[0]*w), int(p[1]*h)) for p in roi_rel], np.int32).reshape((-1, 1, 2))
@@ -409,8 +455,9 @@ def _draw_live_info(image, objects, zone_polygons, config, camera_name):
     for obj in [o for o in objects if not o.has_ended]:
         if not obj.bboxes: continue
         bbox = obj.bboxes[-1]
-        x1, y1 = int(bbox[0][0]), int(bbox[0][1])
-        x2, y2 = int(bbox[1][0]), int(bbox[1][1])
+        # Scale bbox to display resolution
+        x1, y1 = int(bbox[0][0] * sx), int(bbox[0][1] * sy)
+        x2, y2 = int(bbox[1][0] * sx), int(bbox[1][1] * sy)
         
         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 255), 3)
         lbl = f"TRACKER ID: {obj.obj_id}"
@@ -463,6 +510,7 @@ def process_camera(camera_name, config, det_net, labels, ocr_net, cap):
     skip_interval = config.get("camera_fps", 3) # Process every Nth frame
 
     resolution_detected = False
+    poly_res = (1920, 1080) # Default
     zone_polygons = {}
 
     fail_count = 0
@@ -504,6 +552,7 @@ def process_camera(camera_name, config, det_net, labels, ocr_net, cap):
                     if "zone_b" in dir_cfg:
                         zone_polygons["B"] = Polygon([(int(p[0]*w), int(p[1]*h)) for p in dir_cfg["zone_b"]])
                 resolution_detected = True
+                poly_res = (w, h)
                 log.info(f"[{camera_name}] Thread running at {w}x{h}")
 
             # --- PROCESS EVERY N-TH FRAME FOR LOAD REDUCTION ---
@@ -515,10 +564,10 @@ def process_camera(camera_name, config, det_net, labels, ocr_net, cap):
                 completed_tracks = tracker.update(dt_list, dt_conf, image, zone_polygons=zone_polygons)
                 
                 if completed_tracks:
-                    offload_tracks_to_queue(completed_tracks, camera_name, config)
+                    offload_tracks_to_queue(completed_tracks, camera_name, config, zone_polygons=zone_polygons)
 
             if config.get("draw_inference"):
-                _draw_live_info(image, tracker.objects, zone_polygons, config, camera_name)
+                _draw_live_info(image, tracker.objects, zone_polygons, config, camera_name, poly_res)
             
             # --- DISPLAY UPDATE (Thread Safe) ---
             if config.get("show_video"):

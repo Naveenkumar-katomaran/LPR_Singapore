@@ -162,6 +162,7 @@ class TextProcess:
         self.payload['vehicle_entries[camera_id]'] = self.config["db"]["camera_id"][self.camera_name]
         self.files = {}
         self.fmt = "%d-%m-%Y %H:%M:%S %z"
+        self.last_sent_plates = [] # Memory buffer for the last 2 successfully sent plates
     
     def mqtt_publish(self, data):
         try:
@@ -206,27 +207,38 @@ class TextProcess:
                 cooldown = dedupe_cfg.get("cooldown_seconds", self.time_to_fly)
                 threshold = dedupe_cfg.get("similarity_threshold", 0.9)
 
-                # Clean up old history entries (> 5 minutes) to save memory
+                # Clean up old history entries (> cooldown) to save memory
                 current_time = time.time()
                 old_count = len(self.seen_history)
-                self.seen_history = {p: v for p, v in self.seen_history.items() if current_time - v[0] < 300}
+                self.seen_history = {p: v for p, v in self.seen_history.items() if current_time - v[0] < cooldown}
                 if len(self.seen_history) < old_count:
                     logging.debug(f"[Dedupe] Cleaned up {old_count - len(self.seen_history)} old records from history.")
 
-                # Check if this plate (or a very similar one) was seen recently
+                # Check if this plate (or a very similar one) was seen recently (Cooldown)
                 for seen_plate, (last_time, last_conf) in self.seen_history.items():
-                    # Fuzzy match: Similarity check
                     similarity = SequenceMatcher(None, clean_string, seen_plate).ratio()
-                    
                     if similarity >= threshold:
                         if current_time - last_time < cooldown:
-                            # Strict deduplication: already sent a similar plate, so discard this one.
-                            logging.info(f"[Dedupe] ID:{obj_id} Discarding similar plate: {clean_string} (Matches: {seen_plate}, Sim: {similarity:.2f})")
+                            logging.info(f"[Dedupe] ID:{obj_id} Discarding similar plate (Cooldown): {clean_string} (Matches: {seen_plate}, Sim: {similarity:.2f})")
+                            is_new_event = False
+                            break
+                
+                # Secondary Check: Last Sent Buffer (Parked vehicles)
+                if is_new_event:
+                    for last_plate in self.last_sent_plates:
+                        similarity = SequenceMatcher(None, clean_string, last_plate).ratio()
+                        if similarity >= threshold:
+                            logging.info(f"[Dedupe] ID:{obj_id} Discarding plate (Last Sent): {clean_string} (Matches: {last_plate}, Sim: {similarity:.2f})")
                             is_new_event = False
                             break
 
                 if is_new_event:
                     self.seen_history[clean_string] = (current_time, new_conf)
+                    # Update Last Sent Buffer (maintain last 2)
+                    self.last_sent_plates.append(clean_string)
+                    if len(self.last_sent_plates) > 2:
+                        self.last_sent_plates.pop(0)
+
                     veh_type = "normal"
                     if self.config.get("Collect_full_images") and full_frame is not None:
                         training_parent = "training"

@@ -124,6 +124,7 @@ def main():
             
             if "direction_config" not in config: config["direction_config"] = {}
             config["direction_config"][args.camera_name] = {
+                "enabled": true,
                 "method": "zone_transition",
                 "zone_a": rel_a,
                 "zone_b": rel_b,
