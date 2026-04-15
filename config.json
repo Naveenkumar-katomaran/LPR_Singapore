@@ -1,0 +1,404 @@
+{
+  "site_name": "MySite",
+  "verbose": false,
+  "enabled_cameras": [
+    "entry_camera"
+  ],
+  "models": {
+    "device": "auto",
+    "number_plate_model": "model/plate_detection/plate_detection_model_v3.pt",
+    "ocr_model": "model/ocr/my_model.pt",
+    "vehicle_model": "model/vehicle_detection/yolov8n.pt",
+    "number_plate_threshold": 0.4,
+    "ocr_threshold": 0.4,
+    "validate_indian_plate": false,
+    "min_plate_length": 2,
+    "use_fp16": false
+  },
+  "camera_url": {
+    "visitor_camera": "rtsp://admin:HomeG%4056789@192.168.1.2:554/live",
+    "entry_camera": "videos/test1.mp4",
+    "exit_camera": "rtsp://admin:HomeG%4056789@192.168.1.3:554/live",
+    "test_entry": "videos/test1.mp4"
+  },
+  "url": {
+    "visitor_camera": "rtsp://admin:HomeG%4056789@192.168.1.2:554/live",
+    "entry_camera": "videos/test1.mp4",
+    "exit_camera": "rtsp://admin:HomeG%4056789@192.168.1.3:554/live",
+    "test_entry": "videos/test1.mp4"
+  },
+  "camera_numberplate_path": {
+    "parent_folder": "images",
+    "visitor_camera": "visitor_camera",
+    "entry_camera": "entry_camera",
+    "exit_camera": "exit_camera",
+    "test_entry": "test_entry"
+  },
+  "log_path": "logs",
+  "camera_fps": 1,
+  "batch_size": 2,
+  "max_plate_batch_size": 200,
+  "ocr_chunk_size": 16,
+  "show_video": true,
+  "draw_inference": true,
+  "feed_cuts_notification": false,
+  "outbound": true,
+  "mail_time_delay": 3600,
+  "regions": {
+    "visitor_camera": true,
+    "entry_camera": true,
+    "exit_camera": true,
+    "test_entry": true
+  },
+  "car_in": {
+    "visitor_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]",
+    "entry_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]",
+    "exit_camera": "[(0,0),(1920,0),(1920,1080),(0,1080)]"
+  },
+  "centroid": {
+    "visitor_camera": "(960, 540)",
+    "entry_camera": "(960, 540)",
+    "exit_camera": "(960, 540)"
+  },
+  "application_type": {
+    "visitor_camera": "normal",
+    "entry_camera": "normal",
+    "exit_camera": "normal",
+    "test_entry": false
+  },
+  "bike_lnpr": {
+    "visitor_camera": false,
+    "entry_camera": false,
+    "exit_camera": false,
+    "test_entry": false
+  },
+  "sms_status": {
+    "visitor_camera": false,
+    "entry_camera": false,
+    "exit_camera": false,
+    "test_entry": false
+  },
+  "Collect_full_images": true,
+  "OCR_QUEUE_MAXSIZE": 20,
+  "db": {
+    "camera_id": {
+      "visitor_camera": "83dde245-5df6-4211-aa4d-cef91be9e9d1",
+      "entry_camera": "3c33ccea-2724-4b03-97ad-e3ae1d2a083f",
+      "exit_camera": "83dde245-5df6-4211-aa4d-cef91be9e9d1",
+      "test_entry": "83dde245-5df6-4211-aa4d-cef91be9e9d1"
+    },
+    "api_endpoint": "https://kato-bms-api.surveillant.tech/api/v1/vehicle_entries",
+    "Authorization": "API_KEY fe1558bc8037fecae995db31718f6661",
+    "resident_endpoint": "https://your-api.com/residents",
+    "state_change": "https://your-api.com/cameras/{}/state",
+    "state_auth_token": "Bearer YOUR_STATE_TOKEN",
+    "time_to_fly": 30
+  },
+  "rabbitmq": {
+    "host": "64.227.151.23",
+    "port": 5672,
+    "username": "guest",
+    "password": "password",
+    "queue_name": "vehicle_entries"
+  },
+  "minio": {
+    "host": "itms-s3.katomaran.tech",
+    "username": "admin-itms",
+    "password": "admin-itms",
+    "bucket": "traffic-api",
+    "secure": true
+  },
+  "test_db": {
+    "status": false,
+    "url": "",
+    "api_key": ""
+  },
+  "mqtt": {
+    "status": false,
+    "host": "localhost",
+    "port": "1883",
+    "username": "",
+    "password": "",
+    "topic": "lnpr/plates",
+    "topic_endpoint": "",
+    "mqtt_endpoint": "",
+    "serial_ids": {
+      "visitor_camera": "dcs_001",
+      "entry_camera": "dcs_002",
+      "exit_camera": "dcs_003",
+      "test_entry": "dcs_004"
+    }
+  },
+  "resident_mqtt": {
+    "topic": "lnpr/resident",
+    "host": "localhost",
+    "port": "1883",
+    "username": "",
+    "password": ""
+  },
+  "twilio": {
+    "status": false,
+    "account_sid": "",
+    "auth_token": "",
+    "from_number": "",
+    "phone_numbers": [],
+    "count_to_send": 1
+  },
+  "testing": {
+    "status": false,
+    "parent_folder": "test_images",
+    "car_image_folder": "cars",
+    "lp_images_folder": "plates"
+  },
+  "car_in_relative": {
+    "visitor_camera": [
+      [
+        0.0039,
+        0.0069
+      ],
+      [
+        0.9961,
+        0.0056
+      ],
+      [
+        0.9969,
+        0.9958
+      ],
+      [
+        0.0016,
+        0.9958
+      ]
+    ],
+    "entry_camera": [
+      [
+        0.0052,
+        0.0092
+      ],
+      [
+        0.9959,
+        0.0026
+      ],
+      [
+        0.9974,
+        0.9954
+      ],
+      [
+        0.003,
+        0.9914
+      ]
+    ],
+    "exit_camera": [
+      [
+        0.1938,
+        0.9931
+      ],
+      [
+        0.4109,
+        0.0028
+      ],
+      [
+        0.6188,
+        0.0042
+      ],
+      [
+        0.8086,
+        0.9917
+      ]
+    ],
+    "test_entry": [
+      [
+        0.3641,
+        0.0069
+      ],
+      [
+        0.2086,
+        0.9958
+      ],
+      [
+        0.9969,
+        0.9944
+      ],
+      [
+        0.9977,
+        0.0028
+      ]
+    ]
+  },
+  "direction_config": {
+    "visitor_camera": {
+      "enabled": true,
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.0039,
+          0.0069
+        ],
+        [
+          0.0047,
+          0.5014
+        ],
+        [
+          0.9977,
+          0.5319
+        ],
+        [
+          0.993,
+          0.0139
+        ]
+      ],
+      "zone_b": [
+        [
+          0.0016,
+          0.5125
+        ],
+        [
+          0.9945,
+          0.5472
+        ],
+        [
+          0.9969,
+          0.9931
+        ],
+        [
+          0.0008,
+          0.9986
+        ]
+      ],
+      "mode": "entry"
+    },
+    "entry_camera": {
+      "enabled": false,
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.0063,
+          0.4667
+        ],
+        [
+          0.9938,
+          0.7042
+        ],
+        [
+          0.9969,
+          0.9903
+        ],
+        [
+          0.0031,
+          0.9944
+        ]
+      ],
+      "zone_b": [
+        [
+          0.007,
+          0.2528
+        ],
+        [
+          0.9977,
+          0.3458
+        ],
+        [
+          0.9961,
+          0.6972
+        ],
+        [
+          0.007,
+          0.4611
+        ]
+      ],
+      "mode": "entry",
+      "min_detections": 3,
+      "min_displacement": 40
+    },
+    "exit_camera": {
+      "enabled": true,
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.4047,
+          0.0028
+        ],
+        [
+          0.6164,
+          0.0056
+        ],
+        [
+          0.6867,
+          0.3875
+        ],
+        [
+          0.3328,
+          0.4292
+        ]
+      ],
+      "zone_b": [
+        [
+          0.332,
+          0.4292
+        ],
+        [
+          0.6852,
+          0.3931
+        ],
+        [
+          0.7906,
+          0.9944
+        ],
+        [
+          0.2055,
+          0.9972
+        ]
+      ],
+      "mode": "entry"
+    },
+    "test_entry": {
+      "enabled": true,
+      "method": "zone_transition",
+      "zone_a": [
+        [
+          0.2648,
+          0.5875
+        ],
+        [
+          0.9984,
+          0.4181
+        ],
+        [
+          0.9977,
+          0.9944
+        ],
+        [
+          0.2094,
+          0.9958
+        ]
+      ],
+      "zone_b": [
+        [
+          0.3375,
+          0.0653
+        ],
+        [
+          0.9961,
+          0.0639
+        ],
+        [
+          0.9977,
+          0.4153
+        ],
+        [
+          0.2703,
+          0.5819
+        ]
+      ],
+      "mode": "entry"
+    }
+  },
+  "deduplication": {
+    "enabled": true,
+    "cooldown_seconds": 300,
+    "similarity_threshold": 0.85
+  },
+  "TRACKER_MAX_AGE": 5,
+  "DISTANCE_THRESHOLD": 1500,
+  "DISTANCE_SCALE_FACTOR": 2.5,
+  "IOU_THRESHOLD": 2
+}

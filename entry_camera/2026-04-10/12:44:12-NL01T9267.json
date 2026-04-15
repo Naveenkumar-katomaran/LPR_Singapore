@@ -1,0 +1,36 @@
+{
+  "height": 163,
+  "width": 398,
+  "time": "2026-04-10 12:44:12.778899 +0530",
+  "lp_confs": [
+    0.4941435158252716,
+    0.8154085278511047,
+    0.8409307599067688
+  ],
+  "ocr_batch_results": [
+    {
+      "text": "NL01T9267",
+      "count": 3,
+      "avg_conf": 0.881,
+      "score": 83
+    },
+    {
+      "text": "MNL01T9267",
+      "count": 1,
+      "avg_conf": 0.822,
+      "score": 83
+    },
+    {
+      "text": "ML01T9267",
+      "count": 1,
+      "avg_conf": 0.848,
+      "score": 83
+    },
+    {
+      "text": "NL01",
+      "count": 1,
+      "avg_conf": 0.844,
+      "score": 50
+    }
+  ]
+}

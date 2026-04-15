@@ -1,0 +1,12 @@
+# Python caches
+__pycache__/
+**/*.py[cod]
+*$py.class
+
+# Project specific data directories
+images/
+logs/
+videos/
+configs_store/
+training/
+config_copy.json

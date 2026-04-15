@@ -1,0 +1,7 @@
+python camera.py --config_file config.json
+
+
+python inference_video.py --camera_name entry_camera --input videos/test12.mp4 --output videos/ANPR_INFERENCE3.mp4
+
+
+
